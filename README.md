@@ -192,8 +192,6 @@ notebooks/02_sql_pipeline.ipynb       → SQL database pipeline
 
 ## 🔮 Future Work
 
-- [ ] Extend analysis to FD002, FD003, FD004 datasets
-- [ ] Build SQL database pipeline for data management
 - [ ] Deploy model as REST API using Flask
 - [ ] Build Tableau dashboard for fleet health monitoring
 - [ ] Explore deep learning approaches (LSTM)
@@ -221,7 +219,7 @@ MSc International Technology Transfer Management
 BE Mechanical Engineering  
 Data Analytics Bootcamp — Ironhack
 
-[![GitHub](https://img.shields.io/badge/GitHub-yourusername-black)](https://github.com/ghv29)
+[![GitHub](https://img.shields.io/badge/GitHub-ghv29-black)](https://github.com/ghv29)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-yourprofile-blue)](www.linkedin.com/in/goldiev)
 
 ---
