@@ -1,4 +1,4 @@
--- ================================================
+engine_data-- ================================================
 -- Turbofan Predictive Maintenance Database
 -- Create Tables Script
 -- ================================================
@@ -42,7 +42,3 @@ CREATE TABLE IF NOT EXISTS model_results (
     run_date DATETIME NOT NULL
 );
 
-USE turbofan_db;
-SHOW TABLES;
-DESCRIBE engine_data;
-SELECT user, host FROM mysql.user;
