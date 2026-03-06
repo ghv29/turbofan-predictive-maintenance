@@ -176,10 +176,17 @@ pip install -r requirements.txt
 Download from [Kaggle](https://www.kaggle.com/datasets/behrad3d/nasa-cmaps) 
 and place files in `data/raw/`
 
-### 4. Run the notebook
-```bash
-jupyter notebook notebooks/01_data_exploration.ipynb
+### 4. Set up MySQL Database
+- Install MySQL on your machine
+- Open MySQL Workbench and run `sql/create_tables.sql` to create the database
+- When running `02_sql_pipeline.ipynb` you will be prompted to enter your MySQL password
+
+### 5. Run notebooks in order
 ```
+notebooks/01_data_exploration.ipynb   → EDA, feature engineering, model building
+notebooks/02_sql_pipeline.ipynb       → SQL database pipeline
+```
+
 
 ---
 
