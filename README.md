@@ -4,9 +4,9 @@
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-latest-orange)
 ![XGBoost](https://img.shields.io/badge/XGBoost-latest-green)
-![Status](https://img.shields.io/badge/Status-Active-brightgreen)
 ![Flask](https://img.shields.io/badge/Flask-API-lightgrey)
 ![MySQL](https://img.shields.io/badge/MySQL-Database-blue)
+![Status](https://img.shields.io/badge/Status-Active-brightgreen)
 
 ---
 
@@ -69,16 +69,16 @@ Each row represents one engine at one point in time with:
 **Operating Conditions** refer to the altitude and throttle 
 settings under which the engine operates:
 
-| Condition | Alt (ft) | Mach |
-|---|-------|----------|------|
-| 1 | 35000 |   0.84   |  100 |
-| 2 | 20000 |   0.70   |  100 |
-| 3 | 10000 |   0.25   |  100 |
-| 4 | 0     |   0.00   |  100 |
-| 5 | 10000 |   0.42   |  42  |
-| 6 | 0     |   0.00   |  0   |
+| Condition | Alt (ft) |   Mach   | TRA  |
+|-----------|----------|----------|------|
+|     1     |   35000  |   0.84   |  100 |
+|     2     |   20000  |   0.70   |  100 |
+|     3     |   10000  |   0.25   |  100 |
+|     4     |   0      |   0.00   |  100 |
+|     5     |   10000  |   0.42   |  42  |
+|     6     |   0      |   0.00   |  0   |
 
-*Alt = Altitude, Mach = Mach Number
+*Alt = Altitude, Mach = Mach Number, TRA = Throttle Resolver Angle*
 
 **Fault Modes** refer to the component experiencing degradation:
 
@@ -235,7 +235,7 @@ pip install -r requirements.txt
 ```
 
 ### 3. Download the dataset
-Download from [Kaggle](https://www.kaggle.com/datasets/behrad3d/nasa-cmaps) 
+Download from [Kaggle](https://www.kaggle.com/datasets/bishals098/nasa-turbofan-engine-degradation-simulation) 
 and place files in `data/raw/`
 
 ### 4. Set up MySQL Database
