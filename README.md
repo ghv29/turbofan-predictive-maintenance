@@ -4,7 +4,9 @@
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-latest-orange)
 ![XGBoost](https://img.shields.io/badge/XGBoost-latest-green)
-![Status](https://img.shields.io/badge/Status-In%20Progress-yellow)
+![Status](https://img.shields.io/badge/Status-Active-brightgreen)
+![Flask](https://img.shields.io/badge/Flask-API-lightgrey)
+![MySQL](https://img.shields.io/badge/MySQL-Database-blue)
 
 ---
 
@@ -39,17 +41,24 @@ This project demonstrates how machine learning can answer that question with
 
 ## 📊 Dataset
 
-**Source:** [NASA CMAPSS Turbofan Engine Degradation Dataset](https://www.kaggle.com/datasets/behrad3d/nasa-cmaps)
+**Source:** [NASA CMAPSS Turbofan Engine Degradation Dataset](https://www.kaggle.com/datasets/bishals098/nasa-turbofan-engine-degradation-simulation)
+
+**Original Paper:** 
+Saxena et al. (2008) — Damage Propagation Modeling for Aircraft Engine 
+Run-to-Failure Simulation. PHM08, Denver CO.(https://c3.ndc.nasa.gov/dashlink/static/media/publication/2008_IEEEPHM_CMAPPSDamagePropagation.pdf)
+
+**Operating Condition Details:** 
+NASA CMAPSS dataset documentation (readme.txt included in download)
 
 The dataset simulates turbofan engine degradation under different operating 
 conditions and fault modes:
 
 | Dataset | Operating Conditions | Fault Modes | Train Size |
-|---------|---------------------|-------------|------------|
-| FD001   | 1                   | 1           | 20,631     |
-| FD002   | 6                   | 1           | TBD        |
-| FD003   | 1                   | 2           | TBD        |
-| FD004   | 6                   | 2           | TBD        |
+|---------|----------------------|-------------|------------|
+| FD001   | 1                    | 1           | 20,631     |
+| FD002   | 6                    | 1           | 53,759     |
+| FD003   | 1                    | 2           | 24,720     |
+| FD004   | 6                    | 2           | 61,249     |
 
 Each row represents one engine at one point in time with:
 - 1 engine ID
@@ -57,6 +66,29 @@ Each row represents one engine at one point in time with:
 - 3 operational settings
 - 21 sensor readings
 
+**Operating Conditions** refer to the altitude and throttle 
+settings under which the engine operates:
+
+| Condition | Alt (ft) | Mach |
+|---|-------|----------|------|
+| 1 | 35000 |   0.84   |  100 |
+| 2 | 20000 |   0.70   |  100 |
+| 3 | 10000 |   0.25   |  100 |
+| 4 | 0     |   0.00   |  100 |
+| 5 | 10000 |   0.42   |  42  |
+| 6 | 0     |   0.00   |  0   |
+
+*Alt = Altitude, Mach = Mach Number
+
+**Fault Modes** refer to the component experiencing degradation:
+
+| Fault | Component |       Description                    |
+|-------|-----------|--------------------------------------|
+|   1   |    HPC    | High Pressure Compressor degradation |
+|   2   |    Fan    | Fan degradation                      |
+
+> FD001 and FD002 only experience HPC degradation.
+> FD003 and FD004 experience both HPC and Fan degradation simultaneously.
 ---
 
 ## 📁 Project Structure
@@ -68,12 +100,23 @@ turbofan-predictive-maintenance/
 │   └── processed/            # Engineered features, cleaned data
 │
 ├── notebooks/
-│   └── 01_data_exploration.ipynb  # Full analysis pipeline
+│   ├── 01_data_exploration.ipynb  # EDA, feature engineering, models
+│   ├── 02_sql_pipeline.ipynb      # SQL database pipeline
+│   └── 03_multi_dataset_comparison.ipynb  # All 4 datasets comparison
 │
 ├── src/                      # Reusable Python modules
+|   ├── api/
+│   │   ├── app.py            # Flask API application
+│   │   ├── predict.py        # Prediction logic
+│   │   └── test_api.py       # API tests 
 │   ├── data_loader.py
 │   ├── feature_engineering.py
 │   └── model.py
+|
+├── sql/
+│   ├── create_tables.sql     # Database schema
+│   ├── analysis_queries.sql  # Fleet health queries
+│   └── setup_instructions.md
 │
 ├── outputs/
 │   ├── figures/              # All visualizations
@@ -117,6 +160,20 @@ Trained and compared 6 models:
 - Tested 24 parameter combinations (72 total fits)
 - Best parameters: n_estimators=200, max_depth=None
 
+### 5. Multi-Dataset Comparison
+Tested model robustness across all 4 datasets:
+
+| Dataset | RMSE  |  MAE  |   R²  | Conditions | Fault Modes |
+|---------|-------|-------|-------|------------|-------------|
+| FD003   | 13.43 | 8.86  | 0.889 |      1     |      2      |
+| FD001   | 15.51 | 10.89 | 0.858 |      1     |      1      |
+| FD004   | 18.15 | 12.88 | 0.801 |      6     |      2      |
+| FD002   | 20.03 | 15.11 | 0.767 |      6     |      1      |
+
+**Key finding:** Single operating condition datasets (FD001, FD003) 
+outperform multi-condition datasets (FD002, FD004), confirming that 
+varying operating conditions are more challenging than multiple fault modes.
+
 ---
 
 ## 📈 Key Results
@@ -128,13 +185,13 @@ Trained and compared 6 models:
 - **Mean Residual:** 0.37 (nearly unbiased predictions)
 
 ### Most Important Features
-| Rank | Feature | Importance |
-|------|---------|------------|
-| 1 | s4_rollmean | 59.6% |
-| 2 | s11_rollmean | 10.1% |
-| 3 | s9_rollmean | 9.4% |
-| 4 | s14_rollmean | 1.5% |
-| 5 | s15_rollmean | 1.4% |
+| Rank |  Feature     | Importance |
+|------|--------------|------------|
+|   1  | s4_rollmean  |    59.6%   |
+|   2  | s11_rollmean |    10.1%   |
+|   3  | s9_rollmean  |    9.4%    |
+|   4  | s14_rollmean |    1.5%    |
+|   5  | s15_rollmean |    1.4%    |
 
 ### Key Finding
 > Rolling mean of sensor s4 alone accounts for **59.6% of prediction importance**, 
@@ -157,6 +214,11 @@ Trained and compared 6 models:
 ### Residual Analysis
 ![Residual Analysis](outputs/figures/residual_analysis.png)
 
+### Multi-Dataset Comparison
+![Multi Dataset](outputs/figures/multi_dataset_comparison.png)
+
+### All Datasets Predictions
+![All Datasets](outputs/figures/all_datasets_predictions.png)
 ---
 
 ## 🚀 How to Run
@@ -183,16 +245,52 @@ and place files in `data/raw/`
 
 ### 5. Run notebooks in order
 ```
-notebooks/01_data_exploration.ipynb   → EDA, feature engineering, model building
-notebooks/02_sql_pipeline.ipynb       → SQL database pipeline
+notebooks/01_data_exploration.ipynb        → EDA, feature engineering, model building
+notebooks/02_sql_pipeline.ipynb            → SQL database pipeline  
+notebooks/03_multi_dataset_comparison.ipynb → Multi-dataset comparison
+```
+### 6. Start the API
+```bash
+python src\api\app.py
 ```
 
+### 7. Test the API
+```bash
+python src\api\test_api.py
+```
 
+---
+
+## 🌐 API Usage
+
+Start the API:
+```bash
+python src\api\app.py
+```
+API runs at `http://127.0.0.1:5000`
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/health` | GET | Check API status |
+| `/model-info` | GET | Model details & metrics |
+| `/predict` | POST | Single engine RUL prediction |
+| `/predict/batch` | POST | Multiple engines at once |
+
+**Example response from `/predict`:**
+```json
+{
+  "predicted_RUL": 11.6,
+  "health_status": "CRITICAL",
+  "message": "Schedule maintenance immediately!",
+  "urgency": "Immediate action required"
+}
+```
+> See `src/api/test_api.py` for full request examples.
 ---
 
 ## 🔮 Future Work
 
-- [ ] Deploy model as REST API using Flask
+- [x] ~~ Deploy model as REST API using Flask
 - [ ] Build Tableau dashboard for fleet health monitoring
 - [ ] Explore deep learning approaches (LSTM)
 
@@ -207,6 +305,9 @@ notebooks/02_sql_pipeline.ipynb       → SQL database pipeline
 | Scikit-learn | ML models & evaluation |
 | XGBoost | Gradient boosting |
 | Matplotlib & Seaborn | Visualization |
+| Flask | REST API deployment |
+| MySQL | Database pipeline |
+| SQLAlchemy | Python-MySQL connection |
 | Jupyter Notebook | Development environment |
 | Git & GitHub | Version control |
 
@@ -220,7 +321,7 @@ BE Mechanical Engineering
 Data Analytics Bootcamp — Ironhack
 
 [![GitHub](https://img.shields.io/badge/GitHub-ghv29-black)](https://github.com/ghv29)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-yourprofile-blue)](www.linkedin.com/in/goldiev)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-goldiev-blue)](www.linkedin.com/in/goldiev)
 
 ---
 
