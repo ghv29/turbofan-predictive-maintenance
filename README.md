@@ -6,6 +6,7 @@
 ![XGBoost](https://img.shields.io/badge/XGBoost-latest-green)
 ![Flask](https://img.shields.io/badge/Flask-API-lightgrey)
 ![MySQL](https://img.shields.io/badge/MySQL-Database-blue)
+![Tableau](https://img.shields.io/badge/Tableau-Dashboard-E97627)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
 
 ---
@@ -118,6 +119,8 @@ turbofan-predictive-maintenance/
 │   ├── analysis_queries.sql  # Fleet health queries
 │   └── setup_instructions.md
 │
+├── tableau/
+│   └── turbofan_dashboard.twbx # Packaged Tableau workbook
 ├── outputs/
 │   ├── figures/              # All visualizations
 │   └── models/               # Saved trained models
@@ -288,10 +291,20 @@ API runs at `http://127.0.0.1:5000`
 > See `src/api/test_api.py` for full request examples.
 ---
 
+## 📊 Tableau Dashboard
+
+🔗 [View Live Dashboard on Tableau Public](https://public.tableau.com/views/turbofan_dashboard/FleetHealthOverviewDashboard?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
+
+Two interactive dashboards:
+- **Fleet Health Overview** — engine status across 
+  all 4 datasets, RUL trends, lifespan distribution
+- **Sensor & Model Analysis** — S4 sensor deep dive,
+  feature importance, model performance comparison
+
 ## 🔮 Future Work
 
 - [x] ~~ Deploy model as REST API using Flask
-- [ ] Build Tableau dashboard for fleet health monitoring
+- [x] Build Tableau dashboard for fleet health monitoring
 - [ ] Explore deep learning approaches (LSTM)
 
 ---
@@ -309,6 +322,7 @@ API runs at `http://127.0.0.1:5000`
 | MySQL | Database pipeline |
 | SQLAlchemy | Python-MySQL connection |
 | Jupyter Notebook | Development environment |
+| Tableau | Interactive dashboards|
 | Git & GitHub | Version control |
 
 ---
@@ -318,7 +332,7 @@ API runs at `http://127.0.0.1:5000`
 Goldie H. Vaghela
 MSc International Technology Transfer Management  
 BE Mechanical Engineering  
-Data Analytics Bootcamp — Ironhack
+Data Analytics Bootcamp - Ironhack
 
 [![GitHub](https://img.shields.io/badge/GitHub-ghv29-black)](https://github.com/ghv29)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-goldiev-blue)](www.linkedin.com/in/goldiev)
