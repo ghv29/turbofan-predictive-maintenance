@@ -3,8 +3,11 @@
 
 ![Python](https://img.shields.io/badge/Python-3.8+-blue)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-latest-orange)
-![XGBoost](https://img.shields.io/badge/XGBoost-latest-green)
-![Flask](https://img.shields.io/badge/Flask-API-lightgrey)
+![RandomForest](https://img.shields.io/badge/Model-Random%20Forest-FF9F1C)
+![Flask](https://img.shields.io/badge/Flask-API-8E8E8E)
+![Streamlit](https://img.shields.io/badge/Streamlit-Workbench-FF4B4B)
+![Plotly](https://img.shields.io/badge/Plotly-Interactive-239B56)
+![AI%20Advisor](https://img.shields.io/badge/xAI%20Grok-AI%20Advisor-1F7A8C)
 ![MySQL](https://img.shields.io/badge/MySQL-Database-blue)
 ![Tableau](https://img.shields.io/badge/Tableau-Dashboard-E97627)
 ![Status](https://img.shields.io/badge/Status-Active-brightgreen)
@@ -106,13 +109,20 @@ turbofan-predictive-maintenance/
 │   └── 03_multi_dataset_comparison.ipynb  # All 4 datasets comparison
 │
 ├── src/                      # Reusable Python modules
-|   ├── api/
+|   ├── api/                  # Flask API (optional; independent from Streamlit)
 │   │   ├── app.py            # Flask API application
 │   │   ├── predict.py        # Prediction logic
-│   │   └── test_api.py       # API tests 
-│   ├── data_loader.py
-│   ├── feature_engineering.py
-│   └── model.py
+│   │   └── test_api.py       # API tests
+│   ├── ui/                   # Optional UI helpers for Flask API
+│   │   ├── api_client.py
+│   │   └── assets.py
+│   └── workbench/            # Streamlit Workbench modules (main product)
+│       ├── loader.py        # load model + feature schema + CSVs (cached)
+│       ├── predictor.py     # RF prediction + optional SHAP explanations
+│       ├── fleet.py         # fleet-wide aggregation + health counts
+│       ├── charts.py        # Plotly chart functions
+│       ├── advisor.py       # xAI Grok prompt + grounded chat context
+│       └── utils.py         # health rules + colors + trend heuristics
 |
 ├── sql/
 │   ├── create_tables.sql     # Database schema
@@ -120,12 +130,15 @@ turbofan-predictive-maintenance/
 │   └── setup_instructions.md
 │
 ├── tableau/
-│   └── turbofan_dashboard.twbx # Packaged Tableau workbook
+│   └── turbofan_dashboard.twbx # Packaged Tableau workbook (optional reference)
 ├── outputs/
 │   ├── figures/              # All visualizations
 │   └── models/               # Saved trained models
 │
+├── streamlit_app.py         # Streamlit Workbench UI (Fleet → Deep Dive → AI Advisor)
 ├── requirements.txt
+├── requirements_streamlit.txt
+├── STREAMLIT_SETUP.md
 └── README.md
 ```
 
@@ -202,7 +215,18 @@ varying operating conditions are more challenging than multiple fault modes.
 > individual cycle readings.
 
 ---
+## 📍 Health Status Logic & Model Uncertainty
 
+This workbench converts model predictions into actionable health bands using RUL thresholds:
+
+- **CRITICAL**: `RUL < 30`  (red)
+- **WARNING**:  `30 ≤ RUL ≤ 70` (orange/amber)
+- **HEALTHY**: `RUL > 70` (green)
+
+Because RUL is predicted (not directly observed), recommendations must account for uncertainty.
+The Random Forest achieves **RMSE ≈ 15.51 cycles**, so real RUL may vary by roughly **±15 cycles** around the prediction.
+
+---
 ## 📊 Visualizations
 
 ### Actual vs Predicted RUL
@@ -262,6 +286,37 @@ python src\api\app.py
 python src\api\test_api.py
 ```
 
+### 8. Run the Streamlit Workbench (portfolio app)
+The Streamlit app provides the main product journey:
+**Fleet Dashboard → Engine Deep Dive → AI Advisor (Grok chat)**.
+
+Install Streamlit-only dependencies:
+```bash
+pip install -r requirements_streamlit.txt
+```
+
+Set your AI advisor key (required for the chat):
+- Add `XAI_API_KEY=...` to your `.env`
+
+Run:
+```bash
+streamlit run streamlit_app.py
+```
+
+**Note:** For now, the Streamlit workbench runs predictions by loading the trained Random Forest model directly (joblib). It **does NOT call the Flask API**. The Flask API and Streamlit app are independent.
+
+## 🛠️ Streamlit Workbench (Fleet Dashboard)
+What you can do in the app:
+- **Fleet Dashboard:** fleet health at a glance + dataset comparisons + RUL distribution
+- **Engine Deep Dive:** predicted RUL + degradation timeline + local explanation (when SHAP is available)
+- **AI Advisor:** engineering Q&A grounded in fleet/engine context (xAI Grok)
+
+Example user prompts:
+- “Which engines need maintenance this week?”
+- “Why is Engine [ID] flagged as critical?”
+- “What’s the risk of delaying maintenance by 7 cycles?”
+- “Compare FD001 and FD003 fleet health”
+
 ---
 
 ## 🌐 API Usage
@@ -301,10 +356,20 @@ Two interactive dashboards:
 - **Sensor & Model Analysis** — S4 sensor deep dive,
   feature importance, model performance comparison
 
+## ⚠️ Known Limitations (Current Prototype)
+
+- The workbench is built on simulation/run-to-failure data (NASA CMAPSS), not live telemetry streaming.
+- “Current cycle” is the latest available historical cycle in the dataset; there may be little/no post-failure telemetry to plot.
+- Deep Dive explanations depend on the runtime environment (SHAP may be unavailable).
+- AI Advisor grounding is intentionally pragmatic: it injects engineered context and simple, deterministic computations for common question types (not full autonomous tool calling).
+- RUL predictions include uncertainty. With **RMSE ≈ 15.51 cycles**, real RUL can vary by roughly **±15 cycles** around the prediction.
+
 ## 🔮 Future Work
 
 - [x] ~~ Deploy model as REST API using Flask
 - [x] Build Tableau dashboard for fleet health monitoring
+- [x] Build Streamlit Fleet Workbench (Fleet Dashboard + Engine Deep Dive)
+- [x] Add AI Advisor chat (xAI Grok) for grounded maintenance Q&A
 - [ ] Explore deep learning approaches (LSTM)
 
 ---
@@ -314,15 +379,17 @@ Two interactive dashboards:
 | Tool | Purpose |
 |------|---------|
 | Python | Core programming |
-| Pandas & NumPy | Data manipulation |
-| Scikit-learn | ML models & evaluation |
-| XGBoost | Gradient boosting |
-| Matplotlib & Seaborn | Visualization |
-| Flask | REST API deployment |
-| MySQL | Database pipeline |
-| SQLAlchemy | Python-MySQL connection |
+| pandas & NumPy | Data manipulation |
+| scikit-learn + joblib | ML models, evaluation, and loading saved artifacts |
+| Streamlit | Fleet Workbench UI (interactive product journey) |
+| Plotly | Interactive charts (fleet + deep dive visuals) |
+| xAI Grok (via API) | AI Advisor chat |
+| python-dotenv | Load `XAI_API_KEY` from `.env` |
+| SHAP (optional) | Local explanations for selected engines (when available) |
+| Flask (optional) | REST API deployment (independent from Streamlit for now) |
+| MySQL / SQL (optional) | Optional database pipeline used during the project |
 | Jupyter Notebook | Development environment |
-| Tableau | Interactive dashboards|
+| Tableau (optional) | Reference dashboards |
 | Git & GitHub | Version control |
 
 ---

@@ -9,3 +9,5 @@ notebook
 sqlalchemy
 pymysql
 flask
+streamlit
+requests
