@@ -385,11 +385,11 @@ Two interactive dashboards:
 | Plotly | Interactive charts (fleet + deep dive visuals) |
 | xAI Grok (via API) | AI Advisor chat |
 | python-dotenv | Load `XAI_API_KEY` from `.env` |
-| SHAP (optional) | Local explanations for selected engines (when available) |
-| Flask (optional) | REST API deployment (independent from Streamlit for now) |
+| SHAP | (optional) Local explanations for selected engines (when available) |
+| Flask  | (optional) REST API deployment (independent from Streamlit for now) |
 | MySQL / SQL (optional) | Optional database pipeline used during the project |
 | Jupyter Notebook | Development environment |
-| Tableau (optional) | Reference dashboards |
+| Tableau  | Reference dashboards |
 | Git & GitHub | Version control |
 
 ---
