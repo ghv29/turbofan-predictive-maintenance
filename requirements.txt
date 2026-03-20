@@ -1,14 +1,21 @@
-pandas
-numpy
+pandas==2.2.3
+numpy==2.1.3
+scikit-learn==1.7.2
+joblib==1.4.2
+plotly==5.24.1
+python-dotenv==1.0.1
+requests==2.32.3
+
+# Streamlit Workbench runtime (avoid Altair Vega-Lite v4 import issues)
+streamlit==1.39.0
+altair>=5,<6
+
+# Keep notebook / API dependencies for local development (not required for SCC)
 matplotlib
 seaborn
-scikit-learn
 xgboost
 jupyter
 notebook
 sqlalchemy
 pymysql
 flask
-streamlit
-requests
-altair==4.2.2
