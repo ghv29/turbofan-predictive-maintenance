@@ -39,7 +39,7 @@ Unplanned engine failures cost the aviation industry billions annually. Traditio
 > *"When exactly will this engine need maintenance?"*
 
 This project demonstrates how machine learning can answer that question with 
-**86% accuracy (R²=0.858)** using only sensor readings.
+an error of about 18 cycles (RMSE 17.91, R² 0.80) on 100 engines it had never seen, using only sensor readings. See the Evaluation update section below.
 
 ---
 
@@ -106,7 +106,8 @@ turbofan-predictive-maintenance/
 ├── notebooks/
 │   ├── 01_data_exploration.ipynb  # EDA, feature engineering, models
 │   ├── 02_sql_pipeline.ipynb      # SQL database pipeline
-│   └── 03_multi_dataset_comparison.ipynb  # All 4 datasets comparison
+│   ├── 03_multi_dataset_comparison.ipynb  # All 4 datasets comparison
+│   └── 04_test_set_evaluation.ipynb       # Re-scores FD001 on the 100 official test engines
 │
 ├── src/                      # Reusable Python modules
 |   ├── api/                  # Flask API (optional; independent from Streamlit)
@@ -130,7 +131,8 @@ turbofan-predictive-maintenance/
 │   └── setup_instructions.md
 │
 ├── tableau/
-│   └── turbofan_dashboard.twbx # Packaged Tableau workbook (optional reference)
+│   ├── turbofan_dashboard.twbx    # First version (optional reference)
+│   └── turbofan_dashboard_v2.twbx # Revised dashboard (100 official test engines)
 ├── outputs/
 │   ├── figures/              # All visualizations
 │   └── models/               # Saved trained models
@@ -169,7 +171,9 @@ Trained and compared 6 models:
 | XGBoost | 36.38 | 25.76 | 0.710 |
 | XGBoost Tuned | 37.62 | 26.80 | 0.690 |
 | Gradient Boosting | 37.65 | 26.92 | 0.690 |
-| **Best RF (Capped RUL)** | **15.51** | **10.89** | **0.858** |
+| **Best RF (Capped RUL), row split** | **15.51** | **10.89** | **0.858** |
+
+> These scores come from a random 20% split of the rows in the training file, so rows from the same engine are in both training and test. They are not scores on unseen engines. See the Evaluation update section for the score on the 100 official test engines (RMSE 17.91).
 
 ### 4. Hyperparameter Tuning
 - Used GridSearchCV with 3-fold cross validation
@@ -190,17 +194,19 @@ Tested model robustness across all 4 datasets:
 outperform multi-condition datasets (FD002, FD004), confirming that 
 varying operating conditions are more challenging than multiple fault modes.
 
+> These per-dataset scores come from the same row split and have not been re-scored on the official test engines (see Evaluation update).
+
 ---
 
 ## 📈 Key Results
 
 - **Best Model:** Random Forest with RUL Capping
-- **RMSE:** 15.51 cycles
-- **MAE:** 10.89 cycles  
-- **R²:** 0.858 (explains 86% of RUL variation)
-- **Mean Residual:** 0.37 (nearly unbiased predictions)
+- **RMSE:** 17.91 cycles (100 official FD001 test engines, one prediction per engine at its last cycle)
+- **MAE:** 12.81 cycles  
+- **R²:** 0.80
+- **Original row-split score:** RMSE 15.51, MAE 10.89, R² 0.858, mean residual 0.37. Not comparable with the numbers above, see the Evaluation update below.
 
-### Most Important Features
+### Most Important Features (random forest, impurity-based)
 | Rank |  Feature     | Importance |
 |------|--------------|------------|
 |   1  | s4_rollmean  |    59.6%   |
@@ -215,6 +221,52 @@ varying operating conditions are more challenging than multiple fault modes.
 > individual cycle readings.
 
 ---
+## 🔄 Evaluation update (November 2026)
+
+### Why 15.51 was too good
+
+The original score (RMSE 15.51, R² 0.858) came from a random 20% split of the rows in the training file. Rows from the same engine ended up in both training and test. A test row had its neighbours, the cycles right before and after, in training with almost the same sensor values, so the model could look them up instead of generalising to a new engine. 15.51 is not a score on unseen engines.
+
+### Re-scoring on the official test engines
+
+I re-scored the saved model (`rf_fd001_capped.pkl`) on the 100 official FD001 test engines: one prediction per engine at its last recorded cycle, compared with `RUL_FD001`. The features are rebuilt the same way as in training (same flat columns dropped, 5-cycle rolling mean and std per engine, scaler refit on the training file). The code is in `notebooks/04_test_set_evaluation.ipynb`.
+
+| | Row split (original) | 100 official test engines |
+|---|---|---|
+| RMSE | 15.51 | **17.91** |
+| MAE | 10.89 | **12.81** |
+| R² | 0.858 | **0.80** |
+
+The score is worse on new engines, which I expected. The two numbers are still not a perfect comparison: 39% of the training rows sit at the capped RUL of 125, but only 11 of the 100 test engines do.
+
+### Does it catch engines close to failure?
+
+Bands: CRITICAL is RUL below 30, WARNING is 30 to 70, HEALTHY is above 70.
+
+| True band \ Predicted band | CRITICAL | WARNING | HEALTHY |
+|---|---|---|---|
+| CRITICAL | 17 | 7 | 1 |
+| WARNING | 1 | 11 | 5 |
+| HEALTHY | 0 | 3 | 55 |
+
+Of the 25 engines with a true RUL below 30, the model put 17 in CRITICAL, 7 in WARNING and 1 in HEALTHY. Only 1 of the 18 engines it called CRITICAL was not really critical. So it rarely raises a false alarm, but it misses 8 of the 25 near-failure engines.
+
+### Which way is it wrong?
+
+On average the model predicts engines with a true RUL below 30 about 7.9 cycles too high. WARNING engines are about 11.0 too high and HEALTHY engines about 1.0 too low. Too high is the worse direction for maintenance: the model thinks there is more life left than there is, so maintenance can be planned too late. Too low only costs an early service.
+
+### Where the error sits
+
+The 10 engines with the largest error make up about 55% of the total squared error. The worst is engine 79 (true RUL 63, predicted 121.6). The model also leans on one feature: `s4_rollmean` carries 59.6% of the importance (impurity-based, not SHAP). If sensor 4 misbehaves, the predictions suffer.
+
+### What I did not re-score
+
+The FD002 to FD004 scores above use the same row split. Their models were not saved, so I could not re-score them. Treat them as row-split numbers.
+
+The Tableau dashboard was rebuilt around these 100 engines, see the Tableau section below.
+
+---
+
 ## 📍 Health Status Logic & Model Uncertainty
 
 This workbench converts model predictions into actionable health bands using RUL thresholds:
@@ -224,7 +276,7 @@ This workbench converts model predictions into actionable health bands using RUL
 - **HEALTHY**: `RUL > 70` (green)
 
 Because RUL is predicted (not directly observed), recommendations must account for uncertainty.
-The Random Forest achieves **RMSE ≈ 15.51 cycles**, so real RUL may vary by roughly **±15 cycles** around the prediction.
+On the 100 official FD001 test engines the Random Forest has an **RMSE of 17.91 cycles**, so real RUL may vary by roughly **±18 cycles** around the prediction. For engines close to failure the model tends to be too optimistic (on average 7.9 cycles too high), so a WARNING can hide an engine that is already critical.
 
 ---
 ## 📊 Visualizations
@@ -275,6 +327,7 @@ and place files in `data/raw/`
 notebooks/01_data_exploration.ipynb        → EDA, feature engineering, model building
 notebooks/02_sql_pipeline.ipynb            → SQL database pipeline  
 notebooks/03_multi_dataset_comparison.ipynb → Multi-dataset comparison
+notebooks/04_test_set_evaluation.ipynb     → Re-scores FD001 on the official test engines (needs the model saved by notebook 03; writes its CSVs to data/processed)
 ```
 ### 6. Start the API
 ```bash
@@ -348,9 +401,13 @@ API runs at `http://127.0.0.1:5000`
 
 ## 📊 Tableau Dashboard
 
-🔗 [View Live Dashboard on Tableau Public](https://public.tableau.com/views/turbofan_dashboard/FleetHealthOverviewDashboard?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)
+🔗 [View the revised dashboard on Tableau Public](https://public.tableau.com/views/turbofan_dashboard_v2/Maintenancedashboard)
 
-Two interactive dashboards:
+One fixed-size dashboard on the 100 official FD001 test engines. It asks which engines need maintenance first and how far the model's call can be trusted. Four number tiles sit on top. Below them are a ranking of the engines, predicted vs actual RUL, a table of true vs predicted band, the feature importance and a trend chart for the selected engine. Details about the data are behind an "About this data" button. Workbook: `tableau/turbofan_dashboard_v2.twbx`.
+
+First version, kept for reference: [Fleet Health Overview and Sensor & Model Analysis](https://public.tableau.com/views/turbofan_dashboard/FleetHealthOverviewDashboard). It was built on training data, where every engine runs to failure, so its health distribution shows how wide the bands are, not how healthy a fleet is. Workbook: `tableau/turbofan_dashboard.twbx`.
+
+The first version had two interactive dashboards:
 - **Fleet Health Overview** — engine status across 
   all 4 datasets, RUL trends, lifespan distribution
 - **Sensor & Model Analysis** — S4 sensor deep dive,
@@ -362,7 +419,7 @@ Two interactive dashboards:
 - “Current cycle” is the latest available historical cycle in the dataset; there may be little/no post-failure telemetry to plot.
 - Deep Dive explanations depend on the runtime environment (SHAP may be unavailable).
 - AI Advisor grounding is intentionally pragmatic: it injects engineered context and simple, deterministic computations for common question types (not full autonomous tool calling).
-- RUL predictions include uncertainty. With **RMSE ≈ 15.51 cycles**, real RUL can vary by roughly **±15 cycles** around the prediction.
+- RUL predictions include uncertainty. With an **RMSE of 17.91 cycles** on the official test engines, real RUL can vary by roughly **±18 cycles** around the prediction.
 
 ## 🔮 Future Work
 
