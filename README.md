@@ -16,27 +16,23 @@
 
 ## 📌 Project Overview
 
-This project builds an end-to-end **predictive maintenance system** for turbofan 
-aircraft engines using the NASA CMAPSS degradation dataset. The goal is to predict 
-the **Remaining Useful Life (RUL)** of an engine, meaning how many cycles it has left 
-before failure.
+This project predicts the remaining useful life (RUL) of turbofan aircraft engines, meaning how many
+cycles an engine has left before failure. It uses the NASA CMAPSS degradation dataset and comes with
+a trained Random Forest model, a Flask API, a Streamlit app and a Tableau dashboard.
 
-Predictive maintenance is a critical application of machine learning in industrial 
-settings, enabling organizations to:
-- Reduce unplanned downtime and catastrophic failures
-- Optimize maintenance scheduling and reduce costs
-- Improve safety in aviation and manufacturing environments
+Knowing roughly when an engine will fail lets a team schedule maintenance ahead of time. That cuts
+unplanned downtime and the cost of breakdowns.
 
 ---
 
 ## 🎯 Business Context
 
-Unplanned engine failures cost the aviation industry billions annually. Traditional 
+Traditional
 **reactive maintenance** (fix when broken) and **preventive maintenance** 
 (fix on schedule) are either too late or too early. 
 
-**Predictive maintenance** uses real sensor data to answer: 
-> *"When exactly will this engine need maintenance?"*
+**Predictive maintenance** uses sensor data to answer one question:
+> *"When will this engine need maintenance?"*
 
 This project demonstrates how machine learning can answer that question with 
 an error of about 18 cycles (RMSE 17.91, R² 0.80) on 100 engines it had never seen, using only sensor readings. See the Evaluation update section below.
@@ -191,8 +187,8 @@ Tested model robustness across all 4 datasets:
 | FD002   | 20.03 | 15.11 | 0.767 |      6     |      1      |
 
 **Key finding:** Single operating condition datasets (FD001, FD003) 
-outperform multi-condition datasets (FD002, FD004), confirming that 
-varying operating conditions are more challenging than multiple fault modes.
+outperform multi-condition datasets (FD002, FD004). Varying operating conditions seem harder for
+the model than extra fault modes.
 
 > These per-dataset scores come from the same row split and have not been re-scored on the official test engines (see Evaluation update).
 
@@ -216,9 +212,8 @@ varying operating conditions are more challenging than multiple fault modes.
 |   5  | s15_rollmean |    1.4%    |
 
 ### Key Finding
-> Rolling mean of sensor s4 alone accounts for **59.6% of prediction importance**, 
-> confirming that sustained sensor trends are far more predictive than 
-> individual cycle readings.
+> The rolling mean of sensor s4 alone carries **59.6% of the importance**.
+> This suggests that smoothed trends carry more signal than single-cycle readings.
 
 ---
 ## 🔄 Evaluation update (November 2026)
@@ -269,7 +264,7 @@ The Tableau dashboard was rebuilt around these 100 engines, see the Tableau sect
 
 ## 📍 Health Status Logic & Model Uncertainty
 
-This workbench converts model predictions into actionable health bands using RUL thresholds:
+The workbench turns model predictions into health bands using RUL thresholds:
 
 - **CRITICAL**: `RUL < 30`  (red)
 - **WARNING**:  `30 ≤ RUL ≤ 70` (orange/amber)
@@ -340,7 +335,7 @@ python src\api\test_api.py
 ```
 
 ### 8. Run the Streamlit Workbench (portfolio app)
-The Streamlit app provides the main product journey:
+The Streamlit app walks through three steps:
 **Fleet Dashboard → Engine Deep Dive → AI Advisor (Grok chat)**.
 
 Install Streamlit-only dependencies:
@@ -365,10 +360,10 @@ What you can do in the app:
 - **AI Advisor:** engineering Q&A grounded in fleet/engine context (xAI Grok)
 
 Example user prompts:
-- “Which engines need maintenance this week?”
-- “Why is Engine [ID] flagged as critical?”
-- “What’s the risk of delaying maintenance by 7 cycles?”
-- “Compare FD001 and FD003 fleet health”
+- "Which engines need maintenance this week?"
+- "Why is Engine [ID] flagged as critical?"
+- "What's the risk of delaying maintenance by 7 cycles?"
+- "Compare FD001 and FD003 fleet health"
 
 ---
 
@@ -416,14 +411,14 @@ The first version had two interactive dashboards:
 ## ⚠️ Known Limitations (Current Prototype)
 
 - The workbench is built on simulation/run-to-failure data (NASA CMAPSS), not live telemetry streaming.
-- “Current cycle” is the latest available historical cycle in the dataset; there may be little/no post-failure telemetry to plot.
+- "Current cycle" is the latest available historical cycle in the dataset; there may be little/no post-failure telemetry to plot.
 - Deep Dive explanations depend on the runtime environment (SHAP may be unavailable).
-- AI Advisor grounding is intentionally pragmatic: it injects engineered context and simple, deterministic computations for common question types (not full autonomous tool calling).
+- The AI Advisor gets engineered context and a few simple, deterministic calculations for common questions. It does not call tools on its own.
 - RUL predictions include uncertainty. With an **RMSE of 17.91 cycles** on the official test engines, real RUL can vary by roughly **±18 cycles** around the prediction.
 
 ## 🔮 Future Work
 
-- [x] ~~ Deploy model as REST API using Flask
+- [x] Deploy model as REST API using Flask
 - [x] Build Tableau dashboard for fleet health monitoring
 - [x] Build Streamlit Fleet Workbench (Fleet Dashboard + Engine Deep Dive)
 - [x] Add AI Advisor chat (xAI Grok) for grounded maintenance Q&A
@@ -459,7 +454,7 @@ BE Mechanical Engineering
 Data Analytics Bootcamp - Ironhack
 
 [![GitHub](https://img.shields.io/badge/GitHub-ghv29-black)](https://github.com/ghv29)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-goldiev-blue)](www.linkedin.com/in/goldiev)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-goldiev-blue)](https://www.linkedin.com/in/goldiev)
 
 ---
 
