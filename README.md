@@ -18,7 +18,7 @@
 
 This project builds an end-to-end **predictive maintenance system** for turbofan 
 aircraft engines using the NASA CMAPSS degradation dataset. The goal is to predict 
-the **Remaining Useful Life (RUL)** of an engine — how many cycles it has left 
+the **Remaining Useful Life (RUL)** of an engine, meaning how many cycles it has left 
 before failure.
 
 Predictive maintenance is a critical application of machine learning in industrial 
@@ -48,7 +48,7 @@ an error of about 18 cycles (RMSE 17.91, R² 0.80) on 100 engines it had never s
 **Source:** [NASA CMAPSS Turbofan Engine Degradation Dataset](https://www.kaggle.com/datasets/bishals098/nasa-turbofan-engine-degradation-simulation)
 
 **Original Paper:** 
-Saxena et al. (2008) — Damage Propagation Modeling for Aircraft Engine 
+Saxena et al. (2008). Damage Propagation Modeling for Aircraft Engine 
 Run-to-Failure Simulation. PHM08, Denver CO.(https://c3.ndc.nasa.gov/dashlink/static/media/publication/2008_IEEEPHM_CMAPPSDamagePropagation.pdf)
 
 **Operating Condition Details:** 
@@ -408,9 +408,9 @@ One fixed-size dashboard on the 100 official FD001 test engines. It asks which e
 First version, kept for reference: [Fleet Health Overview and Sensor & Model Analysis](https://public.tableau.com/views/turbofan_dashboard/FleetHealthOverviewDashboard). It was built on training data, where every engine runs to failure, so its health distribution shows how wide the bands are, not how healthy a fleet is. Workbook: `tableau/turbofan_dashboard.twbx`.
 
 The first version had two interactive dashboards:
-- **Fleet Health Overview** — engine status across 
+- **Fleet Health Overview**: engine status across 
   all 4 datasets, RUL trends, lifespan distribution
-- **Sensor & Model Analysis** — S4 sensor deep dive,
+- **Sensor & Model Analysis**: S4 sensor deep dive,
   feature importance, model performance comparison
 
 ## ⚠️ Known Limitations (Current Prototype)
